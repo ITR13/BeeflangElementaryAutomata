@@ -8,6 +8,7 @@ namespace d1
 		public int Height { get; private set; }
 		private uint8[,] board;
 		private int lastCalculatedRow;
+		public bool FinishedDrawing => lastCalculatedRow >= Height;
 
 		public this(uint8 rule, int width, int height)
 		{
@@ -51,14 +52,14 @@ namespace d1
 			let input = GetInput(x - 1, x, x + 1, y - 1);
 			let output = (rule >> input) % 2;
 
-			board[y, x] = output;
+			board[[Unchecked]y, [Unchecked]x] = output;
 		}
 
 		private void CalculateEdge(int x0, int x1, int x2, int y){
 			let input = GetInput(x0, x1, x2, y - 1);
 			let output = (rule >> input) % 2;
 
-			board[y, x1] = output;
+			board[[Unchecked]y, [Unchecked]x1] = output;
 		}
 
 		public bool this[int y, int x]

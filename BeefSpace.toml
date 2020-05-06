@@ -1,5 +1,6 @@
 FileVersion = 1
 Projects = {d1 = {Path = "."}, SDL2 = "*"}
+Unlocked = ["SDL2"]
 
 [Workspace]
 StartupProject = "d1"

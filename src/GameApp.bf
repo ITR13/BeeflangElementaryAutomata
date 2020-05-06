@@ -1,6 +1,7 @@
 using System;
 using SDL2;
 using System.Collections;
+using System.Threading;
 
 namespace d1
 {
@@ -14,20 +15,26 @@ namespace d1
 		private bool spaceHeld;
 		private Board board;
 		private uint8 currentRule;
+		private Thread calcThread;
 
 		public this()
 		{
 			gGameApp = this;
-			board = new Board(currentRule, 1023, 1023);
 		}
 
 		public ~this()
 		{
-			delete board;
+			let oldBoard = board;
+			board = null;
+			// Note: thread deletes itself when it finishes, so needs to be called before it ends
+			calcThread.Join();
+			calcThread = null;
+			delete oldBoard;
 		}
 
 		public new void Init()
 		{
+			CreateBoardAndLoop();
 			mWidth = (.)board.Width;
 			mHeight = (.)board.Height;
 			base.Init();
@@ -52,26 +59,63 @@ namespace d1
 
 		void HandleInputs()
 		{
-			if (IsKeyDown(.Space))
-			{
-				delete board;
-				board = new Board(++currentRule, 1023, 1023);
-			}
 			if (IsKeyDown(.Escape))
 			{
 				var event = scope SDL2.SDL.Event();
 				event.type = .Quit;
 
 				SDL.PushEvent(ref *event);
+				return;
+			}
+
+			if (IsKeyDown(.Space))
+			{
+				if (spaceHeld) return;
+				spaceHeld = true;
+				CreateBoardAndLoop();
+			} else
+			{
+				spaceHeld = false;
 			}
 		}
 
 		public override void Update()
 		{
-			Console.WriteLine("Update");
-			board.CalculateNextRow();
-
 			HandleInputs();
+		}
+
+		private void CreateBoardAndLoop()
+		{
+			let oldBoard = board;
+			board = null;
+			if (calcThread != null)
+			{
+				// Note: thread deletes itself when it finishes, so needs to be called before it ends
+				calcThread.Join();
+				calcThread = null;
+			}
+			if (oldBoard != null)
+			{
+				delete oldBoard;
+			}
+			board = new Board(++currentRule, 1023, 1023);
+			calcThread = new Thread(new => CalculateLoop);
+			calcThread.Start();
+		}
+
+		private void CalculateLoop()
+		{
+			while (board != null)
+			{
+				let cachedBoard = board;
+				if (cachedBoard.FinishedDrawing)
+				{
+					Thread.Sleep(1);
+					continue;
+				}
+				cachedBoard.CalculateNextRow();
+				Thread.Sleep(0);
+			}
 		}
 	}
 }
