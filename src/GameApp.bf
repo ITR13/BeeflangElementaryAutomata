@@ -12,9 +12,15 @@ namespace d1
 
 	class GameApp : SDLApp
 	{
+		// Each pixel will cover Scale * Scale points
+		private const int Width = 1024;
+		private const int Height = 1024;
+		private const int Scale = 8;
+		private const int SqrScale = Scale * Scale;
+
 		private bool spaceHeld;
 		private Board board;
-		private uint8 currentRule;
+		private uint8 currentRule = 89;
 		private Thread calcThread;
 
 		public this()
@@ -35,8 +41,8 @@ namespace d1
 		public new void Init()
 		{
 			CreateBoardAndLoop();
-			mWidth = (.)board.Width;
-			mHeight = (.)board.Height;
+			mWidth = Width;
+			mHeight = Height;
 			base.Init();
 		}
 
@@ -44,13 +50,25 @@ namespace d1
 		{
 			Console.WriteLine("Drawing");
 			let width = board.Width - 1;
-			SDL.SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
-			for (var y = 0; y < board.Height; y++)
+			for (var y = 0; y < Height; y++)
 			{
-				for (var x = 0; x < width; x++)
+				for (var x = 0; x < Width; x++)
 				{
-					if (board[y, x])
+					var total = 0;
+					for (var subY = 0; subY < Scale; subY++)
 					{
+						for (var subX = 0; subX < Scale; subX++)
+						{
+							if (board[y*Scale + subY, x*Scale + subX])
+							{
+								total += 1;
+							}
+						}
+					}
+					if (total > 0)
+					{
+						let brightness = (uint8)((total * 255 + 1) / (SqrScale + 1));
+						SDL.SetRenderDrawColor(mRenderer, brightness, brightness, brightness, 255);
 						SDL.RenderDrawPoint(mRenderer, (.)x, (.)y);
 					}
 				}
@@ -98,7 +116,7 @@ namespace d1
 			{
 				delete oldBoard;
 			}
-			board = new Board(++currentRule, 1023, 1023);
+			board = new Board(++currentRule, 1024 * Scale, 1024 * Scale);
 			calcThread = new Thread(new => CalculateLoop);
 			calcThread.Start();
 		}
