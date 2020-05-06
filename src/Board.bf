@@ -10,7 +10,7 @@ namespace d1
 		private int lastCalculatedRow;
 		public bool FinishedDrawing => lastCalculatedRow >= Height;
 
-		public this(uint8 rule, int width, int height)
+		public this(uint8 rule, int height, int width)
 		{
 			Width = width;
 			Height = height;
@@ -37,8 +37,8 @@ namespace d1
 			{
 				CalculateCenter(x, y);
 			}
-			CalculateEdge(xMax - 1, 0, 1, y);
-			CalculateEdge(xMax - 2, xMax - 1, 0, y);
+			CalculateEdge(xMax - 0, 0, 1, y);
+			CalculateEdge(xMax - 1, xMax - 0, 0, y);
 		}
 
 		[Inline]

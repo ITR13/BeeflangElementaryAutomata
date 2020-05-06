@@ -15,12 +15,12 @@ namespace d1
 		// Each pixel will cover Scale * Scale points
 		private const int Width = 1024;
 		private const int Height = 1024;
-		private const int Scale = 8;
+		private const int Scale = 32;
 		private const int SqrScale = Scale * Scale;
 
 		private bool spaceHeld;
 		private Board board;
-		private uint8 currentRule = 89;
+		private uint8 currentRule = 90;
 		private Thread calcThread;
 
 		public this()
@@ -49,26 +49,13 @@ namespace d1
 		public override void Draw()
 		{
 			Console.WriteLine("Drawing");
-			let width = board.Width - 1;
+			SDL.SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
 			for (var y = 0; y < Height; y++)
 			{
 				for (var x = 0; x < Width; x++)
 				{
-					var total = 0;
-					for (var subY = 0; subY < Scale; subY++)
+					if (board[y*Scale, x*Scale])
 					{
-						for (var subX = 0; subX < Scale; subX++)
-						{
-							if (board[y*Scale + subY, x*Scale + subX])
-							{
-								total += 1;
-							}
-						}
-					}
-					if (total > 0)
-					{
-						let brightness = (uint8)((total * 255 + 1) / (SqrScale + 1));
-						SDL.SetRenderDrawColor(mRenderer, brightness, brightness, brightness, 255);
 						SDL.RenderDrawPoint(mRenderer, (.)x, (.)y);
 					}
 				}
@@ -116,7 +103,7 @@ namespace d1
 			{
 				delete oldBoard;
 			}
-			board = new Board(++currentRule, 1024 * Scale, 1024 * Scale);
+			board = new Board(currentRule++, Height * Scale, Width * Scale + 1);
 			calcThread = new Thread(new => CalculateLoop);
 			calcThread.Start();
 		}
